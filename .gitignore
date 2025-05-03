@@ -1,0 +1,13 @@
+# ---- Secrets & venv ----
+.env
+.venv/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+
+# ---- VS Code ----
+.vscode/
+
+# ---- OS ----
+.DS_Store
