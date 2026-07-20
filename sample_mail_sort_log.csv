@@ -1,0 +1,9 @@
+処理日時,UID,件名,差出人,分類予定フォルダ,移動したか,移動結果,処理モード,移動理由
+2099-01-01 09:00:00,DUMMY-001,【ダミー】月次レポートのお知らせ,架空データ工房 <notice@dummy-data.example.invalid>,仕事,いいえ,未移動,判定のみ,サンプル表示用のため未移動
+2099-01-01 09:01:00,DUMMY-002,【ダミー】ご予約内容の確認,空想トラベル窓口 <booking@imaginary-travel.example.invalid>,旅行,いいえ,未移動,判定のみ,サンプル表示用のため未移動
+2099-01-01 09:02:00,DUMMY-003,【ダミー】認証コードのお知らせ,仮想サービス事務局 <security@virtual-service.example.invalid>,通知不要なメール,はい,移動済み,実行,ダミーの通知メールとして分類
+2099-01-01 09:03:00,DUMMY-004,【ダミー】商品発送のご案内,サンプル商店 <shipping@sample-shop.example.invalid>,済み,いいえ,未移動,dry-run,dry-runのため未移動
+2099-01-01 09:04:00,DUMMY-005,【ダミー】イベント開催のお知らせ,架空イベント係 <events@fictional-event.example.invalid>,直近,いいえ,未移動,判定のみ,サンプル表示用のため未移動
+2099-01-01 09:05:00,DUMMY-006,【ダミー】請求書発行のご連絡,テスト請求センター <billing@test-center.example.invalid>,仕事,はい,移動済み,実行,ダミーの業務メールとして分類
+2099-01-01 09:06:00,DUMMY-007,【ダミー】ポイント有効期限のお知らせ,例示ポイントクラブ <points@example-club.example.invalid>,通知不要なメール,はい,移動済み,実行,ダミーの定期通知として分類
+2099-01-01 09:07:00,DUMMY-008,【ダミー】週次ニュースレター,模擬ニュース編集部 <weekly@mock-news.example.invalid>,済み,いいえ,未移動,dry-run,dry-runのため未移動

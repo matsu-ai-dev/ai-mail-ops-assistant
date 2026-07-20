@@ -5,9 +5,31 @@
 # ---- Python ----
 __pycache__/
 *.py[cod]
+*.pyc
 
 # ---- VS Code ----
 .vscode/
 
 # ---- OS ----
 .DS_Store
+
+# ---- Logs / private data ----
+# 実メール由来のログ
+mail_sort_log.csv
+mail_sort_log_v2.csv
+mail_sort_log_v3.csv
+*.log
+
+# Codexや差分確認用の一時ファイル
+codex_diff_*.txt
+diff_*.patch
+
+# 作業用ファイル
+file_list.csv
+taskdef.json
+test.py
+test_imap.py
+portfolio_plan.md
+
+# バックアップファイル
+バックアップ/
