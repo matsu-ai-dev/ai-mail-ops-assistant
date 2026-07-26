@@ -10,7 +10,7 @@ from imapclient.imap_utf7 import decode as decode_utf7
 from imapclient.imap_utf7 import encode as encode_utf7
 
 DRY_RUN = True
-LIMIT = 10
+LIMIT = 3
 
 def get_latest_mail(imap):
     imap.select("INBOX", readonly=False)
