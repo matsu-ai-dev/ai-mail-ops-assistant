@@ -100,7 +100,7 @@ Streamlit Mail Log Viewer で確認
 
 ### DRY_RUN
 
-`test_imap_func.py` では `DRY_RUN = True` を設定しています。
+`mail_classifier.py` では `DRY_RUN = True` を設定しています。
 この状態では、AI が「移動対象」と判断しても、実際のメール移動は行わず、処理結果をログに残します。
 
 これにより、以下を事前に確認できます。
@@ -181,7 +181,7 @@ YAHOO_APP_PASSWORD=your_app_password
 ### 3. メール分類処理を実行
 
 ```bash
-python test_imap_func.py
+python mail_classifier.py
 ```
 
 現在は `DRY_RUN=True` を前提にしています。実メールの移動を行わず、分類結果を CSV に記録して確認します。
