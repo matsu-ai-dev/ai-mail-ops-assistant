@@ -374,111 +374,126 @@ def process_one_mail(imap, client):
         print("移動先フォルダが見つからないため、移動しません")
         return False
 
-load_dotenv()
+def main():
+    load_dotenv()
 
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+    client = OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
 
-import imaplib
+    import imaplib
 
-imap = imaplib.IMAP4_SSL(
-    "imap.mail.yahoo.co.jp"
-)
+    imap = imaplib.IMAP4_SSL(
+        "imap.mail.yahoo.co.jp"
+    )
 
-print("接続成功")
+    print("接続成功")
 
-mail_address = os.getenv("YAHOO_MAIL_ADDRESS")
-app_password = os.getenv("YAHOO_APP_PASSWORD")
+    mail_address = os.getenv("YAHOO_MAIL_ADDRESS")
+    app_password = os.getenv("YAHOO_APP_PASSWORD")
 
-imap.login(
-    mail_address,
-    app_password
-)
+    imap.login(
+        mail_address,
+        app_password
+    )
 
-print("ログイン成功")
+    print("ログイン成功")
 
-seen_uids = get_seen_uids(imap, limit=LIMIT)
+    seen_uids = get_seen_uids(imap, limit=LIMIT)
 
-for uid in seen_uids:
-    try:
-        print("==============================")
-        print("確認UID:", uid)
-        print("==============================")
+    for uid in seen_uids:
+        try:
+            print("==============================")
+            print("確認UID:", uid)
+            print("==============================")
 
-        msg = get_mail_by_uid(imap, uid)
+            msg = get_mail_by_uid(imap, uid)
 
-        subject = msg["Subject"]
-        decoded_subject = decode_mail_header(subject)
+            subject = msg["Subject"]
+            decoded_subject = decode_mail_header(subject)
 
-        from_name = msg["From"]
-        decoded_from = decode_mail_header(from_name)
+            from_name = msg["From"]
+            decoded_from = decode_mail_header(from_name)
 
-        print("件名:", decoded_subject)
-        print("差出人:", decoded_from)
+            print("件名:", decoded_subject)
+            print("差出人:", decoded_from)
 
-        body = get_mail_body(msg)
+            body = get_mail_body(msg)
 
-        response_text = ask_ai(
-            client,
-            decoded_subject,
-            decoded_from,
-            body
-        )
-
-        print(response_text)
-
-        folder = extract_folder(response_text)
-
-        print("分類予定フォルダ:", folder)
-
-        if folder == "通知不要なメール":
-            if DRY_RUN:
-                print("通知不要判定ですが、DRY_RUN=True のため移動しません")
-
-                write_log(
-                    uid,
-                    decoded_subject,
-                    decoded_from,
-                    folder,
-                    "いいえ",
-                    "dry-run",
-                    "dry-run",
-                    "通知不要判定だが、安全確認のため未移動"
-                )
-
-                continue
-
-            print("通知不要なメールなので、実際に移動します")
-
-            folder_exists, move_folder_name = find_yahoo_folder(
-                imap,
-                folder
+            response_text = ask_ai(
+                client,
+                decoded_subject,
+                decoded_from,
+                body
             )
 
-            if folder_exists:
-                move_success = move_mail(
+            print(response_text)
+
+            folder = extract_folder(response_text)
+
+            print("分類予定フォルダ:", folder)
+
+            if folder == "通知不要なメール":
+                if DRY_RUN:
+                    print("通知不要判定ですが、DRY_RUN=True のため移動しません")
+
+                    write_log(
+                        uid,
+                        decoded_subject,
+                        decoded_from,
+                        folder,
+                        "いいえ",
+                        "dry-run",
+                        "dry-run",
+                        "通知不要判定だが、安全確認のため未移動"
+                    )
+
+                    continue
+
+                print("通知不要なメールなので、実際に移動します")
+
+                folder_exists, move_folder_name = find_yahoo_folder(
                     imap,
-                    uid,
-                    folder,
-                    move_folder_name
+                    folder
                 )
 
-                print("移動結果:", move_success)
+                if folder_exists:
+                    move_success = move_mail(
+                        imap,
+                        uid,
+                        folder,
+                        move_folder_name
+                    )
 
-                write_log(
-                    uid,
-                    decoded_subject,
-                    decoded_from,
-                    folder,
-                    "はい",
-                    "成功" if move_success else "失敗",
-                    "実移動",
-                    "通知不要判定のため移動"
-                )
+                    print("移動結果:", move_success)
+
+                    write_log(
+                        uid,
+                        decoded_subject,
+                        decoded_from,
+                        folder,
+                        "はい",
+                        "成功" if move_success else "失敗",
+                        "実移動",
+                        "通知不要判定のため移動"
+                    )
+
+                else:
+                    print("移動先フォルダが見つからないため、移動しません")
+
+                    write_log(
+                        uid,
+                        decoded_subject,
+                        decoded_from,
+                        folder,
+                        "いいえ",
+                        "フォルダなし",
+                        "実移動",
+                        "移動先フォルダが見つからないため未移動"
+                    )
 
             else:
-                print("移動先フォルダが見つからないため、移動しません")
+                print("通知不要なメール以外なので、今回は移動しません")
 
                 write_log(
                     uid,
@@ -486,35 +501,25 @@ for uid in seen_uids:
                     decoded_from,
                     folder,
                     "いいえ",
-                    "フォルダなし",
-                    "実移動",
-                    "移動先フォルダが見つからないため未移動"
+                    "未移動",
+                    "判定のみ",
+                    "通知不要なメール以外のため未移動"
                 )
 
-        else:
-            print("通知不要なメール以外なので、今回は移動しません")
+        except Exception as e:
+            print("メール処理中にエラーが発生しました:", e)
 
             write_log(
                 uid,
-                decoded_subject,
-                decoded_from,
-                folder,
+                "取得失敗",
+                "取得失敗",
+                "不明",
                 "いいえ",
-                "未移動",
-                "判定のみ",
-                "通知不要なメール以外のため未移動"
+                "エラー",
+                "エラー",
+                str(e)
             )
 
-    except Exception as e:
-        print("メール処理中にエラーが発生しました:", e)
 
-        write_log(
-            uid,
-            "取得失敗",
-            "取得失敗",
-            "不明",
-            "いいえ",
-            "エラー",
-            "エラー",
-            str(e)
-        )
+if __name__ == "__main__":
+    main()
