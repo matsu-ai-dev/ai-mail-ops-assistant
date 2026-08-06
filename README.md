@@ -61,7 +61,7 @@ AI Mail Ops Assistant は、メールを IMAP で取得し、OpenAI API で内�
 - VS Code
 - Codex
 
-`requirements.txt` には FastAPI や uvicorn も含まれていますが、現在の中心実装はメール分類処理と Streamlit ログビューアです。FastAPI 化は今後の改善予定として扱っています。
+`requirements.txt` には実行時依存を、`requirements-dev.txt` にはテスト用依存を定義しています。
 
 ## 処理フロー
 
@@ -163,7 +163,8 @@ AI の分類結果を画面で確認できるため、Human-in-the-loop の運�
 ### 1. 依存ライブラリをインストール
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
+pytest -q -p no:cacheprovider
 ```
 
 ### 2. `.env` を作成

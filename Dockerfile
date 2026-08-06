@@ -1,4 +1,4 @@
-# vision-desc : Streamlit only
+# AI Mail Ops Assistant: Streamlit application
 FROM python:3.12-slim
 
 WORKDIR /app

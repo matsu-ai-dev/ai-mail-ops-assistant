@@ -1,9 +1,9 @@
 name: CI
 
 on:
-  push:                 # push されたら必ず実行
-    branches: [ main ]  # main ブランチだけで十分ならここを main
-  pull_request:         # PR でも回したいなら残す
+  push:
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
 
 jobs:
@@ -13,16 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # ---- Python テスト ----
+    # Python tests
     - uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-    - run: pip install -r requirements.txt
-    - run: pytest -q
+    - run: pip install -r requirements-dev.txt
+    - run: pytest -q -p no:cacheprovider
 
-    # ---- Docker ビルドのみ（push しない）----
+    # Build the Docker image without pushing it
     - uses: docker/setup-buildx-action@v3
     - uses: docker/build-push-action@v5
       with:
         push: false
-        tags: vision-desc:ci
+        tags: ai-mail-ops-assistant:ci
