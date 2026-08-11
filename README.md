@@ -144,7 +144,7 @@ CSV に残すことで、AI の判断を後から確認できます。これは�
 
 ## Streamlit Mail Log Viewer
 
-`streamlit_app.py` は、`mail_sort_log_v3.csv` を読み込み、AI 分類ログを画面で確認するためのビューアです。
+`streamlit_app.py` は、AI 分類ログを画面で確認するためのビューアです。`mail_sort_log_v3.csv` が存在する場合はローカル実行ログを読み込み、存在しない場合は `sample_mail_sort_log.csv` を公開用デモデータとして表示します。
 
 できること:
 
@@ -160,14 +160,19 @@ AI の分類結果を画面で確認できるため、Human-in-the-loop の運�
 
 ## 実行方法
 
-### 1. 依存ライブラリをインストール
+### 1. 開発用依存ライブラリをインストール
 
 ```bash
 pip install -r requirements-dev.txt
+```
+
+### 2. テストを実行
+
+```bash
 pytest -q -p no:cacheprovider
 ```
 
-### 2. `.env` を作成
+### 3. `.env` を作成
 
 `.env.example` を参考に、ローカル環境だけで `.env` を作成します。
 
@@ -179,7 +184,7 @@ YAHOO_APP_PASSWORD=your_app_password
 
 `.env` には実際の API キーやメール認証情報を入れるため、GitHub には公開しません。
 
-### 3. メール分類処理を実行
+### 4. メール分類処理を実行
 
 ```bash
 python mail_classifier.py
@@ -187,17 +192,30 @@ python mail_classifier.py
 
 現在は `DRY_RUN=True` を前提にしています。実メールの移動を行わず、分類結果を CSV に記録して確認します。
 
-### 4. Streamlit Mail Log Viewer を起動
+### 5. Streamlit Mail Log Viewer を起動
 
 ```bash
 streamlit run streamlit_app.py
 ```
 
-ブラウザで Streamlit 画面を開き、`mail_sort_log_v3.csv` の内容を確認します。
+ブラウザで Streamlit 画面を開きます。`mail_sort_log_v3.csv` があればローカル実行ログが表示され、なければ `sample_mail_sort_log.csv` の公開用デモデータが表示されます。
+
+### 6. Docker で実行
+
+```bash
+docker build -t ai-mail-ops-assistant .
+docker run --rm -p 8501:8501 ai-mail-ops-assistant
+```
+
+Docker イメージには実ログを含めないため、Docker 実行時は `sample_mail_sort_log.csv` が表示されます。
+
+## GitHub Actions
+
+push 時に、GitHub Actions で Python 3.12 環境の `pytest` と Docker build を自動確認しています。
 
 ## `.env.example` の説明
 
-このリポジトリでは、実際の `.env` は公開対象にしません。代わりに、必要な環境変数名だけを `.env.example` として用意する方針です。
+このリポジトリでは、実際の `.env` は公開対象にしません。代わりに、必要な環境変数名だけを `.env.example` として用意しています。
 
 | 変数名 | 説明 |
 | --- | --- |
@@ -219,7 +237,7 @@ streamlit run streamlit_app.py
 公開時の方針:
 
 - メール本文はダミーの文面を使用する
-- 差出人は `sample@example.com` のようなサンプル値を使用する
+- 差出人は `sample@example.invalid` のようなサンプル値を使用する
 - CSV はサンプルデータまたは匿名化済みデータを使用する
 - 実際の顧客名、会社名、口座情報、障害内容、問い合わせ内容は載せない
 - スクリーンショットを載せる場合も、個人情報や実メールが写っていないことを確認する
@@ -228,7 +246,7 @@ streamlit run streamlit_app.py
 
 ```text
 件名: 【サンプル障害連絡】ファイル連携処理でエラーが発生しました
-差出人: sample-vendor@example.com
+差出人: sample-vendor@example.invalid
 
 本日 09:15 頃、ファイル連携処理でタイムアウトエラーが発生しました。
 現在、原因を調査中です。影響範囲は一部の送信処理です。
@@ -236,16 +254,14 @@ streamlit run streamlit_app.py
 
 ## 今後の改善予定
 
-- `.env.example` をファイルとして追加する
-- 実メールに依存しないダミーデータ実行モードを追加する
-- サンプル CSV を整備する
-- README にスクリーンショットを追加する
-- テストコードを拡充する
+- README に Streamlit のスクリーンショットを追加する
+- テストを拡充する
 - メール分類ロジックを関数単位に整理する
-- プロンプトと分類ルールを外部設定化する
-- FastAPI 化して他システムから呼び出せるようにする
-- LangGraph を使い、人間確認を含むワークフローに拡張する
-- HULFT / WebConnect などのログ要約ツールへ派生させる
+- 分類ルール・プロンプトを外部設定化する
+- FastAPI 化する
+- LangGraph による Human-in-the-loop 化
+- Amazon Bedrock へ切り替え可能な LLM 層を検討する
+- HULFT / WebConnect ログ要約へ派生させる
 
 ## 金融系 SE 経験とのつながり
 
