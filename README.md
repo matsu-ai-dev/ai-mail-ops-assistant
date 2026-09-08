@@ -5,6 +5,12 @@ AI Mail Ops Assistant は、メールを IMAP で取得し、OpenAI API で内�
 
 このリポジトリでは、実メール・個人情報・API キーは公開せず、ダミーデータやサンプルログで動作イメージを説明します。
 
+## 画面イメージ
+
+![Streamlit Mail Log Viewer](docs/images/streamlit-mail-log-viewer.png)
+
+AIの分類結果を、件数集計・フィルタ・一覧表示で確認できます。公開用画面では完全なダミーデータを使用しています。
+
 ## 概要
 
 主な処理は以下の流れです。
