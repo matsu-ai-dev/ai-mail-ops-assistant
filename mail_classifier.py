@@ -177,6 +177,8 @@ def extract_folder(response_text):
             folder = line.split("フォルダ候補：", 1)[1].strip()
 
             if folder == "":
+                if i + 1 >= len(lines):
+                    return None
                 folder = lines[i + 1].strip()
 
             folder = folder.replace("　", " ").strip()
@@ -186,7 +188,7 @@ def extract_folder(response_text):
 
             break
 
-    return folder
+    return folder or None
 
 def find_yahoo_folder(imap, folder):
     status, folders = imap.list()

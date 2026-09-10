@@ -226,6 +226,51 @@ docker run --rm -p 8501:8501 ai-mail-ops-assistant
 
 Docker イメージには実ログを含めないため、Docker 実行時は `sample_mail_sort_log.csv` が表示されます。
 
+## メール分類 API
+
+`api_app.py` は FastAPI の最小 API です。`mail_classifier.py` の `ask_ai()` と `extract_folder()` を再利用します。API から IMAP 接続・メール移動・CSV ログ書き込みは行いません。
+
+依存関係をインストールし、リポジトリのルートで起動します。
+
+```bash
+pip install -r requirements-dev.txt
+python -m uvicorn api_app:app --reload --host 127.0.0.1 --port 8000
+```
+
+分類には環境変数またはローカルの `.env` に `OPENAI_API_KEY` が必要です。Yahoo メールの認証情報は不要です。ブラウザで `http://127.0.0.1:8000/docs` を開くと入力・実行できます。
+
+- `GET /health`: HTTP 200 と `{"status": "ok"}` を返します。認証情報や外部サービスへの接続は必要ありません。
+- `POST /classify`: JSON の `subject`、`sender`、`body` をすべて文字列で受け取ります。既存処理と同じく、AI に送る本文は先頭 1,000 文字です。
+
+入力例（架空のメール）:
+
+```json
+{
+  "subject": "【サンプル】旅行の予約確認",
+  "sender": "sample@example.invalid",
+  "body": "これはテスト用の架空の予約確認メールです。"
+}
+```
+
+HTTP 200 の出力例（AI 回答は呼び出しごとに変わります）:
+
+```json
+{
+  "folder": "旅行",
+  "ai_response": "要約：架空の予約確認です。\nフォルダ候補：旅行"
+}
+```
+
+`folder` は既存の抽出処理による分類予定フォルダで、実在確認は行いません。候補が欠けている場合は `null` です。`ai_response` は AI 回答全文です。既存処理に独立した要約フィールドはないため、要約を分離する新しい解析処理は追加していません。
+
+入力不足・型違いは HTTP 422、API キー未設定は HTTP 503、OpenAI 呼び出しの失敗・回答テキストなしは HTTP 502 を返します。
+
+API テストは [FastAPI の TestClient](https://fastapi.tiangolo.com/tutorial/testing/) を使用し、OpenAI クライアントと `.env` 読み込みをモックします。実メール・実認証情報や外部通信は使用しません。
+
+```bash
+pytest -q -p no:cacheprovider
+```
+
 ## GitHub Actions
 
 push 時に、GitHub Actions で Python 3.12 環境の `pytest` と Docker build を自動確認しています。
@@ -276,7 +321,6 @@ push 時に、GitHub Actions で Python 3.12 環境の `pytest` と Docker build
 - テストを拡充する
 - メール分類ロジックを関数単位に整理する
 - 分類ルール・プロンプトを外部設定化する
-- FastAPI 化する
 - LangGraph による Human-in-the-loop 化
 - Amazon Bedrock へ切り替え可能な LLM 層を検討する
 - HULFT / WebConnect ログ要約へ派生させる
