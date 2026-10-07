@@ -34,3 +34,7 @@ portfolio_plan.md
 # バックアップファイル
 バックアップ/
 .pytest_cache/
+
+# 誤ってGitHubへ上げないよう追記
+.lambda_build/
+lambda-package.zip
