@@ -18,8 +18,12 @@ SAMPLE_MAIL = {
 
 @pytest.fixture(autouse=True)
 def isolate_external_services(monkeypatch):
-    monkeypatch.setattr(api_app, "load_dotenv", Mock(return_value=False))
-    monkeypatch.setenv("OPENAI_API_KEY", "dummy-test-key")
+    monkeypatch.setattr(
+        api_app.secret_loader,
+        "get_openai_api_key",
+        Mock(return_value="dummy-test-key"),
+    )
+
     blocked_calls = []
     for target, name in [
         (mail_classifier.imaplib, "IMAP4_SSL"),
@@ -63,8 +67,7 @@ def test_health_needs_no_credentials_or_ai(http_client, monkeypatch):
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
     api_app.OpenAI.assert_not_called()
-    api_app.load_dotenv.assert_not_called()
-
+    api_app.secret_loader.get_openai_api_key.assert_not_called()
 
 @pytest.mark.parametrize(
     ("ai_response", "folder"),
@@ -126,7 +129,7 @@ def test_classify_requires_strings(http_client, field, value):
 
 
 def test_classify_without_api_key_returns_503(http_client, monkeypatch):
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    api_app.secret_loader.get_openai_api_key.return_value = None
 
     response = http_client.post("/classify", json=SAMPLE_MAIL)
 
@@ -134,6 +137,27 @@ def test_classify_without_api_key_returns_503(http_client, monkeypatch):
     assert response.json() == {"detail": "OPENAI_API_KEY is not configured"}
     api_app.OpenAI.assert_not_called()
 
+def test_classify_secret_load_failure_returns_503(http_client):
+    # Secrets Managerでエラーが起きた状況を再現
+    api_app.secret_loader.get_openai_api_key.side_effect = (
+        api_app.secret_loader.SecretLoadError(
+            "OpenAI credentials unavailable"
+        )
+    )
+
+    response = http_client.post(
+        "/classify",
+        json=SAMPLE_MAIL
+    )
+
+    # 安全なエラー応答を確認
+    assert response.status_code == 503
+    assert response.json() == {
+        "detail": "OpenAI credentials unavailable"
+    }
+
+    # OpenAIには問い合わせていないことを確認
+    api_app.OpenAI.assert_not_called()
 
 def test_classify_ai_failure_returns_generic_error(http_client, ai_client):
     ai_client.chat.completions.create.side_effect = OpenAIError(

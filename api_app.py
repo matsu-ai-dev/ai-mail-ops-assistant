@@ -1,12 +1,9 @@
-import os
-
-from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from openai import OpenAI, OpenAIError
 from pydantic import BaseModel
 
 import mail_classifier
-
+import secret_loader
 
 app = FastAPI(title="AI Mail Ops Assistant")
 
@@ -29,8 +26,14 @@ def health():
 
 @app.post("/classify", response_model=ClassifyResponse)
 def classify(mail: ClassifyRequest):
-    load_dotenv()
-    api_key = os.getenv("OPENAI_API_KEY")
+    try:
+        api_key = secret_loader.get_openai_api_key()
+    except secret_loader.SecretLoadError:
+        raise HTTPException(
+            status_code=503,
+            detail="OpenAI credentials unavailable"
+        ) from None
+
     if not api_key:
         raise HTTPException(status_code=503, detail="OPENAI_API_KEY is not configured")
 
